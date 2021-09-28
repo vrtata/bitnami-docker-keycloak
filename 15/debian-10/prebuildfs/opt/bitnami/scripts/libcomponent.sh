@@ -5,6 +5,7 @@
 # Constants
 CACHE_ROOT="/tmp/bitnami/pkg/cache"
 DOWNLOAD_URL="https://downloads.bitnami.com/files/stacksmith"
+DB_URL="https://dev.mysql.com/get/Downloads/Connector-J"
 
 # Functions
 
@@ -34,15 +35,15 @@ component_unpack() {
             -c|--checksum)
                 shift
                 package_sha256="${1:?missing package checksum}"
-                ;;
+            ;;
             *)
                 echo "Invalid command line flag $1" >&2
                 return 1
-                ;;
+            ;;
         esac
         shift
     done
-
+    
     echo "Downloading $base_name package"
     if [ -f "${CACHE_ROOT}/${base_name}.tar.gz" ]; then
         echo "${CACHE_ROOT}/${base_name}.tar.gz already exists, skipping download."
@@ -54,7 +55,7 @@ component_unpack() {
             rm "${CACHE_ROOT}/${base_name}.tar.gz.sha256"
         fi
     else
-	curl --remote-name --silent "${DOWNLOAD_URL}/${base_name}.tar.gz"
+        curl --remote-name --silent "${DOWNLOAD_URL}/${base_name}.tar.gz"
     fi
     if [ -n "$package_sha256" ]; then
         echo "Verifying package integrity"
@@ -65,5 +66,29 @@ component_unpack() {
 }
 
 unpack_db_driver() {
+    local directory="/opt/bitnami"
+    local package_sha256=""
+    local db_driver="${1:?name is required}"
+    local db_driver_jar="${db_driver}.jar"
 
+    curl --remote-name --silent "${DB_URL}/${dbdriver}"
+    
+    if [ -n "$package_sha256" ]; then
+        echo "Verifying package integrity"
+        echo "$package_sha256  ${db_driver}.tar.gz" | sha256sum --check -
+    fi
+
+    tar --directory "${directory}" --extract --gunzip --file "${db_driver}.tar.gz" --no-same-owner --strip-components=1 "mysql-connector-java-8.0.26"/"${db_driver_jar}"
+    rm "${db_driver}.tar.gz"
+
+    echo '<?xml version="1.0" ?>
+    <module xmlns="urn:jboss:module:1.3" name="com.mysql">
+        <resources>
+                <resource-root path='"${db_driver_jar}"' />
+        </resources>
+        <dependencies>
+                <module name="javax.api"/>
+                <module name="javax.transaction.api"/>
+        </dependencies>
+    </module>' >> "${directory}/module.xml"
 }
