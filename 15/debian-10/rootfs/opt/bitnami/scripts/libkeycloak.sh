@@ -99,13 +99,13 @@ keycloak_configure_database() {
 embed-server --server-config=${KEYCLOAK_CONF_FILE} --std-out=echo
 batch
 /subsystem=datasources/data-source=KeycloakDS: remove()
-/subsystem=datasources/data-source=KeycloakDS: add(jndi-name=java:jboss/datasources/KeycloakDS,enabled=true,use-java-context=true,use-ccm=true, connection-url=jdbc:postgresql://${KEYCLOAK_DATABASE_HOST}:${KEYCLOAK_DATABASE_PORT}/${KEYCLOAK_DATABASE_NAME}${jdbc_params}, driver-name=postgresql)
+/subsystem=datasources/data-source=KeycloakDS: add(jndi-name=java:jboss/datasources/KeycloakDS,enabled=true,use-java-context=true,use-ccm=true, connection-url=jdbc:${KEYCLOAK_DB_DRIVER_NAME}://${KEYCLOAK_DATABASE_HOST}:${KEYCLOAK_DATABASE_PORT}/${KEYCLOAK_DATABASE_NAME}${jdbc_params}, driver-name=${KEYCLOAK_DB_DRIVER_NAME})
 /subsystem=datasources/data-source=KeycloakDS: write-attribute(name=user-name, value=\${env.KEYCLOAK_DATABASE_USER})
 /subsystem=datasources/data-source=KeycloakDS: write-attribute(name=check-valid-connection-sql, value="SELECT 1")
 /subsystem=datasources/data-source=KeycloakDS: write-attribute(name=background-validation, value=true)
 /subsystem=datasources/data-source=KeycloakDS: write-attribute(name=background-validation-millis, value=60000)
 /subsystem=datasources/data-source=KeycloakDS: write-attribute(name=flush-strategy, value=IdleConnections)
-/subsystem=datasources/jdbc-driver=postgresql:add(driver-name=postgresql, driver-module-name=org.postgresql.jdbc, driver-xa-datasource-class-name=org.postgresql.xa.PGXADataSource)
+/subsystem=datasources/jdbc-driver=${KEYCLOAK_DB_DRIVER_NAME}:add(driver-name=${KEYCLOAK_DB_DRIVER_NAME}, driver-module-name=${KEYCLOAK_DB_DRIVER_MODULE}, driver-xa-datasource-class-name=${KEYCLOAK_DB_XA_DATASOURCE_CLASS})
 /subsystem=keycloak-server/spi=connectionsJpa/provider=default:write-attribute(name=properties.schema,value=${KEYCLOAK_DATABASE_SCHEMA})
 run-batch
 stop-embedded-server
@@ -364,12 +364,12 @@ keycloak_initialize() {
     keycloak_clean_from_restart
 
     # Wait for database
-    info "Trying to connect to PostgreSQL server $KEYCLOAK_DATABASE_HOST..."
+    info "Trying to connect to Database server $KEYCLOAK_DATABASE_HOST..."
     if ! retry_while "wait-for-port --host $KEYCLOAK_DATABASE_HOST --timeout 10 $KEYCLOAK_DATABASE_PORT" "$KEYCLOAK_INIT_MAX_RETRIES"; then
         error "Unable to connect to host $KEYCLOAK_DATABASE_HOST"
         exit 1
     else
-        info "Found PostgreSQL server listening at $KEYCLOAK_DATABASE_HOST:$KEYCLOAK_DATABASE_PORT"
+        info "Found Database server listening at $KEYCLOAK_DATABASE_HOST:$KEYCLOAK_DATABASE_PORT"
     fi
 
     if ! is_dir_empty "$KEYCLOAK_MOUNTED_CONF_DIR"; then
@@ -397,7 +397,7 @@ keycloak_initialize() {
     fi
 
     debug "Ensuring expected directories/files exist..."
-    for dir in "$KEYCLOAK_LOG_DIR" "$KEYCLOAK_TMP_DIR" "$KEYCLOAK_DATA_DIR" "$KEYCLOAK_CONF_DIR" "$KEYCLOAK_DEPLOYMENTS_DIR" "$KEYCLOAK_DOMAIN_TMP_DIR"; do
+    for dir in "$KEYCLOAK_LOG_DIR" "$KEYCLOAK_TMP_DIR" "$KEYCLOAK_DATA_DIR" "$KEYCLOAK_CONF_DIR" "$KEYCLOAK_DEPLOYMENTS_DIR" "$KEYCLOAK_DOMAIN_TMP_DIR" "$KEYCLOAK_MYSQL_DRIVER_DIR"; do
         ensure_dir_exists "$dir"
         am_i_root && chown -R "$KEYCLOAK_DAEMON_USER:$KEYCLOAK_DAEMON_GROUP" "$dir"
     done

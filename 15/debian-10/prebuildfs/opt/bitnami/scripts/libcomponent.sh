@@ -63,3 +63,7 @@ component_unpack() {
     tar --directory "${directory}" --extract --gunzip --file "${base_name}.tar.gz" --no-same-owner --strip-components=2 "${base_name}/files/"
     rm "${base_name}.tar.gz"
 }
+
+unpack_db_driver() {
+
+}
