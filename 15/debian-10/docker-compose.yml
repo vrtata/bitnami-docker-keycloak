@@ -1,22 +1,16 @@
 version: '2'
 services:
-  postgresql:
-    image: docker.io/bitnami/postgresql:11
-    environment:
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - ALLOW_EMPTY_PASSWORD=yes
-      - POSTGRESQL_USERNAME=bn_keycloak
-      - POSTGRESQL_DATABASE=bitnami_keycloak
-    volumes:
-      - 'postgresql_data:/bitnami/postgresql'
-
   keycloak:
-    image: docker.io/bitnami/keycloak:15
-    depends_on:
-      - postgresql
+    image: keycloak-mysql8:15.0.2
+    environment:
+      KEYCLOAK_DATABASE_HOST: "10.0.2.4"
+      KEYCLOAK_DATABASE_PORT: "3306"
+      KEYCLOAK_DATABASE_NAME: "keycloak_tst"
+      KEYCLOAK_DATABASE_SCHEMA: "keycloak_tst"
+      KEYCLOAK_DATABASE_USER: "root"
+      KEYCLOAK_DATABASE_PASSWORD: "pZfsBjagUuk9"
+      KEYCLOAK_DB_DRIVER_NAME: "mysql"
+      KEYCLOAK_DB_DRIVER_MODULE: "com.mysql"
+      KEYCLOAK_DB_XA_DATASOURCE_CLASS: "com.mysql.cj.jdbc.MysqlXADataSource" 
     ports:
       - "80:8080"
-
-volumes:
-  postgresql_data:
-    driver: local
