@@ -71,24 +71,40 @@ unpack_db_driver() {
     local db_driver="${1:?name is required}"
     local db_driver_jar="${db_driver}.jar"
 
-    curl --remote-name --silent "${DB_URL}/${dbdriver}"
-    
+    # Validate arguments
+    shift 1
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            -c|--checksum)
+                shift
+                package_sha256="${1:?missing package checksum}"
+            ;;
+            *)
+                echo "Invalid command line flag $1" >&2
+                return 1
+            ;;
+        esac
+        shift
+    done
+
+    wget "${DB_URL}/${db_driver}.tar.gz" --no-check-certificate 
+
     if [ -n "$package_sha256" ]; then
         echo "Verifying package integrity"
         echo "$package_sha256  ${db_driver}.tar.gz" | sha256sum --check -
     fi
 
-    tar --directory "${directory}" --extract --gunzip --file "${db_driver}.tar.gz" --no-same-owner --strip-components=1 "mysql-connector-java-8.0.26"/"${db_driver_jar}"
+    tar --directory "${directory}" --extract --gunzip --file "${db_driver}.tar.gz" --no-same-owner --strip-components=1 "${db_driver}"/"${db_driver_jar}"
     rm "${db_driver}.tar.gz"
 
-    echo '<?xml version="1.0" ?>
-    <module xmlns="urn:jboss:module:1.3" name="com.mysql">
-        <resources>
-                <resource-root path='"${db_driver_jar}"' />
-        </resources>
-        <dependencies>
-                <module name="javax.api"/>
-                <module name="javax.transaction.api"/>
-        </dependencies>
-    </module>' >> "${directory}/module.xml"
+    # echo '<?xml version="1.0" ?>
+    # <module xmlns="urn:jboss:module:1.3" name="com.mysql">
+    #     <resources>
+    #         <resource-root path=\"'"${db_driver_jar}"'\" />
+    #     </resources>
+    #     <dependencies>
+    #         <module name="javax.api"/>
+    #         <module name="javax.transaction.api"/>
+    #     </dependencies>
+    # </module>' >> "${directory}/module.xml"
 }
