@@ -3,14 +3,15 @@ services:
   keycloak:
     image: keycloak-mysql8:15.0.2
     environment:
-      KEYCLOAK_DATABASE_HOST: "10.0.2.4"
+      KEYCLOAK_DATABASE_HOST: "om-tms-dev-4001.mysql.database.azure.com"
       KEYCLOAK_DATABASE_PORT: "3306"
-      KEYCLOAK_DATABASE_NAME: "keycloak_tst"
-      KEYCLOAK_DATABASE_SCHEMA: "keycloak_tst"
-      KEYCLOAK_DATABASE_USER: "root"
-      KEYCLOAK_DATABASE_PASSWORD: "pZfsBjagUuk9"
+      KEYCLOAK_DATABASE_NAME: "keycloak_poc"
+      KEYCLOAK_DATABASE_SCHEMA: "keycloak_poc"
+      KEYCLOAK_DATABASE_USER: "kcdevdbowner@om-tms-dev-4001"
+      KEYCLOAK_DATABASE_PASSWORD: "dhJvSmXqCzV34LTh"
       KEYCLOAK_DB_DRIVER_NAME: "mysql"
       KEYCLOAK_DB_DRIVER_MODULE: "com.mysql"
       KEYCLOAK_DB_XA_DATASOURCE_CLASS: "com.mysql.cj.jdbc.MysqlXADataSource" 
+      KEYCLOAK_JDBC_PARAMS: "characterEncoding=UTF-8&autoReconnect=true"
     ports:
-      - "80:8080"
+      - "8080:8080"

@@ -1,0 +1,16 @@
+version: '2'
+services:
+  keycloak:
+    image: keycloak-mysql8:15.0.2
+    environment:
+      KEYCLOAK_DATABASE_HOST: "10.0.2.4"
+      KEYCLOAK_DATABASE_PORT: "3306"
+      KEYCLOAK_DATABASE_NAME: "keycloak_tst"
+      KEYCLOAK_DATABASE_SCHEMA: "keycloak_tst"
+      KEYCLOAK_DATABASE_USER: "root"
+      KEYCLOAK_DATABASE_PASSWORD: "ylhE92A72DjN"
+      KEYCLOAK_DB_DRIVER_NAME: "mysql"
+      KEYCLOAK_DB_DRIVER_MODULE: "com.mysql"
+      KEYCLOAK_DB_XA_DATASOURCE_CLASS: "com.mysql.cj.jdbc.MysqlXADataSource" 
+    ports:
+      - "8080:8080"
