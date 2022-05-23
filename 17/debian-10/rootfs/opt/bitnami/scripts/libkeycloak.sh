@@ -41,8 +41,14 @@ keycloak_validate() {
         fi
     }
     if is_boolean_yes "$KEYCLOAK_PRODUCTION"; then
-        if ! is_boolean_yes "$KEYCLOAK_ENABLE_TLS"; then
-            print_validation_error "You need to have the TLS enable. Please set the KEYCLOAK_ENABLE_TLS variable to true"
+        if [[ "${KEYCLOAK_PROXY}" == "edge" ]]; then
+            # https://www.keycloak.org/server/reverseproxy
+            if is_boolean_yes "$KEYCLOAK_ENABLE_TLS"; then
+                print_validation_error "TLS and proxy=edge are not compatible. Please set the KEYCLOAK_ENABLE_TLS variable to false when using KEYCLOAK_PROXY=edge. Review # https://www.keycloak.org/server/reverseproxy for more information about proxy settings."
+            fi
+        else ! is_boolean_yes "$KEYCLOAK_ENABLE_TLS"
+            # keycloak proxy passthrough/reencrypt requires tls
+            print_validation_error "You need to have TLS enabled. Please set the KEYCLOAK_ENABLE_TLS variable to true"
         fi
     fi
 
@@ -150,7 +156,7 @@ keycloak_configure_metrics() {
 }
 
 ########################
-# Configure hostname 
+# Configure hostname
 # Globals:
 #   KEYCLOAK_*
 # Arguments:
@@ -164,7 +170,7 @@ keycloak_configure_hostname(){
 }
 
 ########################
-# Configure http 
+# Configure http
 # Globals:
 #   KEYCLOAK_*
 # Arguments:
